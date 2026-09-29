@@ -36,6 +36,10 @@ class LoginResponse(BaseModel):
     user: UserResponse
 
 
+class TokenResponse(BaseModel):
+    access_token: str
+
+
 class ChangePasswordRequest(BaseModel):
     current_password: str = Field(max_length=128)
     new_password: Password
@@ -43,4 +47,5 @@ class ChangePasswordRequest(BaseModel):
 
 class ChangePasswordResponse(BaseModel):
     message: str
+    access_token: str
     user: UserResponse

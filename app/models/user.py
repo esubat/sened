@@ -8,6 +8,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from .base import Base
 
 if TYPE_CHECKING:
+    from .refresh_token import RefreshToken
     from .role import Role
 
 user_roles = Table(
@@ -48,4 +49,7 @@ class User(Base):
 
     roles: Mapped[list[Role]] = relationship(
         secondary=user_roles, back_populates="users"
+    )
+    refresh_tokens: Mapped[list[RefreshToken]] = relationship(
+        back_populates="user", passive_deletes=True
     )
