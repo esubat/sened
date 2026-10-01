@@ -1,5 +1,6 @@
 import asyncio
 
+from botocore.exceptions import BotoCoreError, ClientError
 from fastapi import APIRouter, status
 from fastapi.responses import JSONResponse
 from sqlalchemy import text
@@ -7,6 +8,7 @@ from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.dependencies.database import DbSession
+from app.core import storage
 from app.core.config import settings
 
 router = APIRouter(prefix="/health", tags=["health"])
@@ -19,7 +21,18 @@ async def check_database(db: AsyncSession) -> str:
             timeout=settings.health_check_timeout_seconds,
         )
         return "ok"
-    except (SQLAlchemyError, TimeoutError):
+    except SQLAlchemyError, TimeoutError:
+        return "failed"
+
+
+async def check_storage() -> str:
+    try:
+        await asyncio.wait_for(
+            storage.check_bucket(),
+            timeout=settings.health_check_timeout_seconds,
+        )
+        return "ok"
+    except BotoCoreError, ClientError, TimeoutError:
         return "failed"
 
 
@@ -32,6 +45,7 @@ async def live():
 async def ready(db: DbSession):
     checks = {
         "database": await check_database(db),
+        "storage": await check_storage(),
     }
 
     healthy = all(result == "ok" for result in checks.values())

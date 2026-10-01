@@ -14,6 +14,12 @@ class Settings(BaseSettings):
     refresh_token_cookie_secure: bool = True
     refresh_token_cookie_samesite: Literal["lax", "strict", "none"] = "strict"
     health_check_timeout_seconds: float = 2
+    s3_endpoint_url: str | None = None
+    s3_region: str = "us-east-1"
+    s3_access_key_id: str
+    s3_secret_access_key: SecretStr
+    s3_bucket: str = "sened-storage"
+    s3_presigned_url_expire_seconds: int = 900
 
     model_config = SettingsConfigDict(
         env_file=".env",
