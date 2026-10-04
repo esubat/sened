@@ -24,7 +24,7 @@ def _user_prefix(user: User) -> str:
     return f"users/{user.id}/"
 
 
-def _ensure_owned(user: User, key: str) -> None:
+def ensure_owned(user: User, key: str) -> None:
     if not key.startswith(_user_prefix(user)):
         raise ForbiddenKeyError("You do not have access to this file")
 
@@ -39,12 +39,12 @@ def create_presigned_upload_url(
 
 
 def create_presigned_download_url(user: User, key: str) -> PresignedDownloadResponse:
-    _ensure_owned(user, key)
+    ensure_owned(user, key)
     expires_in = settings.s3_presigned_url_expire_seconds
     download_url = storage.presign_download(key, expires_in)
     return PresignedDownloadResponse(download_url=download_url, expires_in=expires_in)
 
 
 async def delete_file(user: User, key: str) -> None:
-    _ensure_owned(user, key)
+    ensure_owned(user, key)
     await storage.delete_object(key)

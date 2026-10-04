@@ -1,7 +1,9 @@
 import asyncio
+from dataclasses import dataclass
 
 import boto3
 from botocore.config import Config
+from botocore.exceptions import ClientError
 
 from app.core.config import settings
 
@@ -32,6 +34,27 @@ def presign_download(key: str, expires_in: int) -> str:
         "get_object",
         Params={"Bucket": settings.s3_bucket, "Key": key},
         ExpiresIn=expires_in,
+    )
+
+
+@dataclass(frozen=True)
+class ObjectMetadata:
+    size: int
+    content_type: str
+
+
+async def get_object_metadata(key: str) -> ObjectMetadata | None:
+    try:
+        response = await asyncio.to_thread(
+            s3_client.head_object, Bucket=settings.s3_bucket, Key=key
+        )
+    except ClientError as e:
+        if e.response["Error"]["Code"] in ("404", "NoSuchKey", "NotFound"):
+            return None
+        raise
+    return ObjectMetadata(
+        size=response["ContentLength"],
+        content_type=response.get("ContentType") or "application/octet-stream",
     )
 
 
