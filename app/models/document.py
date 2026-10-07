@@ -10,6 +10,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from .base import Base
 
 if TYPE_CHECKING:
+    from .document_chunk import DocumentChunk
     from .user import User
 
 
@@ -63,3 +64,9 @@ class Document(Base):
     )
 
     user: Mapped[User] = relationship(back_populates="documents")
+    chunks: Mapped[list[DocumentChunk]] = relationship(
+        back_populates="document",
+        cascade="all, delete-orphan",
+        passive_deletes=True,
+        order_by="DocumentChunk.chunk_index",
+    )
