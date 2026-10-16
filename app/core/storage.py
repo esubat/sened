@@ -58,6 +58,13 @@ async def get_object_metadata(key: str) -> ObjectMetadata | None:
     )
 
 
+async def get_object(key: str) -> bytes:
+    response = await asyncio.to_thread(
+        s3_client.get_object, Bucket=settings.s3_bucket, Key=key
+    )
+    return await asyncio.to_thread(response["Body"].read)
+
+
 async def delete_object(key: str) -> None:
     await asyncio.to_thread(s3_client.delete_object, Bucket=settings.s3_bucket, Key=key)
 
